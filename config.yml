@@ -1,5 +1,5 @@
-HOST: 'ios-xe-mgmt.cisco.com'
-PORT: 10000
-USER: 'root'
-PASS: 'D_Vay!_10&'
+HOST: '192.168.100.4'
+PORT: 22
+USER: 'student'
+PASS: 'Meilab123'
 
