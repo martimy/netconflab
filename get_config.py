@@ -1,31 +1,43 @@
-#!/usr/bin/env python
-#
-# Get configured interfaces using Netconf
-#
+#!/usr/bin/env python3
 
 from ncclient import manager
-import sys, yaml
-import xml.dom.minidom
-
-FILE = 'filter_interfaces.xml'
-
-def get_configuration(strfilter, p):
-    with manager.connect(host=p['HOST'], port=p['PORT'], username=p['USER'],
-                         password=p['PASS'], hostkey_verify=False,
-                         device_params={'name': 'default'},
-                         allow_agent=False, look_for_keys=False) as m:
-        return(m.get_config('running', strfilter))
+import sys, os
+import xml.dom.minidom as xdom
 
 
-def main(filename, parm):
-    with open(filename) as f:
-        config = get_configuration(f.read(), parm)
-        configxml = xml.dom.minidom.parseString(config.xml)
-        configlist = configxml.getElementsByTagName("interfaces")
-        for e in configlist:
-            print(e.toprettyxml())
+PASS = 'Meilab123'
+USER = 'student'
+
+filter_cmd = """<filter>
+         <config-format-text-cmd>
+            <text-filter-spec> | inc interface </text-filter-spec>
+         </config-format-text-cmd>
+                </filter>"""
+
+filter_blk = """<filter>
+         <config-format-text-block>
+            <text-filter-spec> | include interface </text-filter-spec>
+         </config-format-text-block>
+                </filter>"""
+
+def get_config(HOST, filter):
+    with manager.connect(host=HOST, port=22,
+                username=USER, password=PASS,
+                device_params={'name': 'iosxe'},
+                hostkey_verify=False,
+                look_for_keys=False,
+                allow_agent=False) as m:
+        c = m.get_config('running', filter)
+        print("=== Configuration of %s ===" % HOST)
+        print(c.xml)
+        #xtr = xdom.parseString(c.xml)
+        #print(xtr.toprettyxml())
 
 if __name__ == '__main__':
-    with open("config.yml", 'r') as ymlfile:
-        cfg = yaml.load(ymlfile)
-        main(FILE, cfg)   
+    if(len(sys.argv)>1):
+        HOST = sys.argv[1]
+        print("Contacting HOST %s" % HOST)
+        get_config(HOST,filter_blk)
+    else:
+        print("Usage: python3 %s <host>" % __file__)
+
